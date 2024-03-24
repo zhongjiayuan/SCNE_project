@@ -5,7 +5,6 @@ close all;
 
 pnum=[269,50,71,73,11,26];
 data_entropy_size=size(data_entropy);
-%data_entropy(data_entropy>10^3)=mean(mean(data_entropy));
 
 n=1;
 for t=1:length(pnum)
