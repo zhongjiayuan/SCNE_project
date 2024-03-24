@@ -78,7 +78,7 @@ all_gene=list(data.index)
 
 
 
-f=open('LUAD_network.txt')
+f=open('network.txt')
 node_center=[]
 nodes_nei=[]
 data_matrix=[]
