@@ -73,7 +73,7 @@ Options and arguments:
 
 
 
-data=pd.read_csv('LUAD_matrix.csv', sep = ',',header=None,index_col=0)
+data=pd.read_csv('LUAD_case_matrix.csv', sep = ',',header=None,index_col=0)
 all_gene=list(data.index)
 
 
@@ -124,8 +124,8 @@ def ttr(gene1,gene_1,gn,sample_test):
 		k=0
 		y_index=ind([gene1],gn)
 		x_index=ind(gene_1,gn)
-		reg=LinearRegression().fit(train[:,x_index],train[:,y_index])
-		erro_1=(reg.predict(sample_test[:,x_index])-sample_test[:,y_index])**2
+		reg=LinearRegression().fit(train[:,x_index],train[:,y_index])#通过训练集模拟回归模型
+		erro_1=(reg.predict(sample_test[:,x_index])-sample_test[:,y_index])**2  #计算测试集的残差平方和
 		#erro.append(erro_1)
 		erro_avg=erro_1[0][0]
 	else:
@@ -202,6 +202,7 @@ def  re(sample_test,gene_name,predict_pairs1):
         indeed_exp=[]
         outdeed_result=[]
         outdeed_exp=[]
+        outdeed_ft=[]
         for j in range(len(predict_pairs1)):
            predict_list=predict_pairs1[j]
            if g in predict_list:
@@ -210,12 +211,18 @@ def  re(sample_test,gene_name,predict_pairs1):
               if g_index==0:
                   outdeed_result.append(predict_list[2])
                   outdeed_exp.append(sample_test[0][gene_name.index(predict_list[1])])
+
+                  out=gene_name.index(predict_list[1])
+                  out_ft=abs((sample_test[0][out]-np.mean(train[:,out]))/(np.std(train[:,out])+es))
+                  outdeed_ft.append(out_ft)
+
               else:
                  indeed_result.append(predict_list[2])
                  indeed_exp.append(sample_test[0][gene_name.index(predict_list[0])])
         merge_list=outdeed_exp+indeed_exp
         if outdeed_result==[]:
              outdeed_local_entropy=0
+             outdeed_ft=0
         else:
              out_list = [(x/sum(outdeed_result)) for x in outdeed_result]
              outdeed_exp = [(x/(sum(merge_list)+es)) for x in outdeed_exp]
@@ -231,7 +238,8 @@ def  re(sample_test,gene_name,predict_pairs1):
            indeed_local_entropy=(len(indeed_result)/(len(outdeed_result)+len(indeed_result)))*indeed_local_entropy
         
         sm=abs((sample_test[0][i]-np.mean(train[:,i]))/(np.std(train[:,i])+es))
-        local_entropy=(outdeed_local_entropy+indeed_local_entropy)*sm       
+        #local_entropy=(outdeed_local_entropy+indeed_local_entropy)*sm
+        local_entropy=(outdeed_local_entropy*np.mean(outdeed_ft))+(indeed_local_entropy*sm)     
         sample_entropy.append(local_entropy)
     entropy_list=copy.deepcopy(sample_entropy)
     sample_entropy.sort(reverse=True)
@@ -276,10 +284,7 @@ if __name__=="__main__":
         os.remove(path0+path_name[0][0:-4]+'_LUAD_pcc0_r.txt')
 
 
+
 entropy_matrix_data=np.array(entropy_matrix).T
 entropy_matrix_result=pd.DataFrame(data=entropy_matrix_data)
 entropy_matrix_result.to_csv('LUAD_entropy_matrix.csv')
-
-
-
-
